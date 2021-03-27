@@ -11,15 +11,17 @@ dates = map(x -> x["attributes"]["Date_Reported"] / 1000 |> Dates.unix2datetime,
 cases = map(x -> x["attributes"]["New_Cases"], parsed["features"])
 
 kernel = fill(1/7, 7)
+backwards_kernel = [kernel; fill(0, length(kernel))]
 average_cases = conv(kernel, cases)[length(kernel):end]
+active_cases = conv(backwards_kernel, cases)[1:end-length(backwards_kernel)+1]
 cumulative_cases = (cases' * UpperTriangular(ones(length(cases), length(cases))))'
 
 theme(:dark)
 plot(
   dates,
-  [cases average_cases],
-  label = ["New Cases" "New Cases (weekly average)"],
-  lw = [1 2],
+  [cases active_cases average_cases],
+  label = ["New Cases" "Active Cases" "New Cases (weekly average)"],
+  lw = [1 2 3],
   legend=:topleft,
 )
 
